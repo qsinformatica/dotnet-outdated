@@ -24,14 +24,16 @@ namespace DotNetOutdated.Core.Services
 
             var fileAttributes = _fileSystem.File.GetAttributes(path);
 
-            // If a directory was passed in, search for a .sln or .csproj file
+            // If a directory was passed in, search for a .sln or .*proj file
             if (fileAttributes.HasFlag(FileAttributes.Directory))
             {
                 // If we are in recursive mode, find all individual projects recursively
                 if (recursive)
                 {
                     var recursiveProjectFiles = _fileSystem.Directory.GetFiles(path, "*.csproj", SearchOption.AllDirectories)
-                        .Concat(_fileSystem.Directory.GetFiles(path, "*.fsproj", SearchOption.AllDirectories)).ToArray();
+                        .Concat(_fileSystem.Directory.GetFiles(path, "*.vbproj", SearchOption.AllDirectories))
+                        .Concat(_fileSystem.Directory.GetFiles(path, "*.fsproj", SearchOption.AllDirectories))
+                        .ToArray();
 
                     if (recursiveProjectFiles.Length > 0)
                         return recursiveProjectFiles;
@@ -49,7 +51,11 @@ namespace DotNetOutdated.Core.Services
                     throw new CommandValidationException(string.Format(CultureInfo.InvariantCulture, Resources.ValidationErrorMessages.DirectoryContainsMultipleSolutions, path));
 
                 // We did not find any solutions, so try and find individual projects
-                var projectFiles = _fileSystem.Directory.GetFiles(path, "*.csproj").Concat(_fileSystem.Directory.GetFiles(path, "*.fsproj")).ToArray();
+                var projectFiles = _fileSystem.Directory.GetFiles(path, "*.csproj")
+                    .Concat(_fileSystem.Directory.GetFiles(path, "*.vbproj"))
+                    .Concat(_fileSystem.Directory.GetFiles(path, "*.fsproj"))
+                    .ToArray();
+
                 if (projectFiles.Length == 1)
                     return new[] { _fileSystem.Path.GetFullPath(projectFiles[0]) };
 
@@ -63,6 +69,7 @@ namespace DotNetOutdated.Core.Services
             // If a .sln or .csproj file was passed, just return that
             if ((string.Equals(_fileSystem.Path.GetExtension(path), ".sln", StringComparison.OrdinalIgnoreCase)) ||
                 (string.Equals(_fileSystem.Path.GetExtension(path), ".csproj", StringComparison.OrdinalIgnoreCase)) ||
+                (string.Equals(_fileSystem.Path.GetExtension(path), ".vbproj", StringComparison.OrdinalIgnoreCase)) ||
                 (string.Equals(_fileSystem.Path.GetExtension(path), ".fsproj", StringComparison.OrdinalIgnoreCase)) ||
                 (string.Equals(_fileSystem.Path.GetExtension(path), ".slnf", StringComparison.OrdinalIgnoreCase)))
             {
