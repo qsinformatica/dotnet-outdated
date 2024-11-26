@@ -333,3 +333,4 @@ ASALocalRun/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.config/dotnet-tools.json
