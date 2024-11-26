@@ -5,7 +5,7 @@
 
 # dotnet-outdated
 
-This is a continuation of the original `dotnet-outdated` tool created by Jerrie Pelser.
+This is a continuation of the original `dotnet-outdated` tool created by Jerrie Pelser. It adds support for VB.NET SDK-style project.
 
 If you already have the original `dotnet-outdated` tool installed you need to
 run `dotnet tool uninstall --global dotnet-outdated` before installing this
