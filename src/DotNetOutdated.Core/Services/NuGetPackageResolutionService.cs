@@ -8,15 +8,10 @@ using NuGet.Versioning;
 
 namespace DotNetOutdated.Core.Services
 {
-    public class NuGetPackageResolutionService : INuGetPackageResolutionService
+    public class NuGetPackageResolutionService(INuGetPackageInfoService nugetService) : INuGetPackageResolutionService
     {
-        private readonly INuGetPackageInfoService _nugetService;
-        private readonly ConcurrentDictionary<string, Lazy<Task<IReadOnlyList<NuGetVersion>>>> _cache = new ConcurrentDictionary<string, Lazy<Task<IReadOnlyList<NuGetVersion>>>>();
-
-        public NuGetPackageResolutionService(INuGetPackageInfoService nugetService)
-        {
-            _nugetService = nugetService;
-        }
+        private readonly INuGetPackageInfoService _nugetService = nugetService;
+        private readonly ConcurrentDictionary<string, Lazy<Task<IReadOnlyList<NuGetVersion>>>> _cache = [];
 
         public async Task<NuGetVersion> ResolvePackageVersions(
             string packageName,
@@ -58,8 +53,8 @@ namespace DotNetOutdated.Core.Services
             int olderThanDays,
             bool ignoreFailedSources = false)
         {
-            if (referencedVersion == null)
-                throw new ArgumentNullException(nameof(referencedVersion));
+            ArgumentNullException.ThrowIfNull(referencedVersion);
+            ArgumentNullException.ThrowIfNull(currentVersionRange);
 
             if (currentVersionRange.MinVersion is null)
                 throw new ArgumentException($"No minimum version specified for package {packageName}.", nameof(currentVersionRange));
