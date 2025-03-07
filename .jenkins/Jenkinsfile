@@ -63,6 +63,11 @@ pipeline {
                                     dotnet tool install --global --add-source "$env:QS_NUGET_SOURCE" ${env:TOOL_NAME}
                                 '''
                             }
+                            post {
+                                always {
+                                    cleanWs()
+                                }
+                            }
                         }
                     }
                 }
@@ -76,6 +81,11 @@ pipeline {
                                     dotnet tool uninstall --global ${env:TOOL_NAME}
                                     dotnet tool install --global --add-source "$env:QS_NUGET_SOURCE" ${env:TOOL_NAME}
                                 '''
+                            }
+                            post {
+                                always {
+                                    cleanWs()
+                                }
                             }
                         }
                     }
@@ -91,21 +101,15 @@ pipeline {
                                     dotnet tool install --global --add-source "$env:QS_NUGET_SOURCE" ${env:TOOL_NAME}
                                 '''
                             }
+                            post {
+                                always {
+                                    cleanWs()
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-
-        // stage('Cleanup') {
-        //     agent {label 'built-in'}
-        //     stages {
-        //         stage('Clean network') {
-        //             steps {
-        //                 powershell 'Remove-Item $env:QS_NUGET_SOURCE -Filter *$env:TOOL_NAME*'
-        //             }
-        //         }
-        //     }
-        // }
     }
 }
