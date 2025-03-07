@@ -1,0 +1,107 @@
+pipeline {
+    agent none  // Important: use none for parallel agent management
+
+    environment {
+        REPO_URL = 'https://github.com/qsinformatica/dotnet-outdated.git'
+        TOOL_NAME = 'qs-dotnet-outdated-tool'
+        QS_NUGET_SOURCE = "${SOFTWARE}\\Lib\\nuget"
+    }
+
+    stages {
+
+        stage('Main Build') {
+            agent { label 'built-in' }
+            stages {
+                stage('Checkout') {
+                    steps {
+                        git branch: 'master', url: "${REPO_URL}"
+                    }
+                }
+
+                stage('Restore dependencies') {
+                    steps {
+                        powershell 'dotnet restore'
+                    }
+                }
+
+                stage('Build') {
+                    steps {
+                        powershell 'dotnet build --configuration Release'
+                    }
+                }
+
+                stage('Pack') {
+                    steps {
+                        powershell 'dotnet pack'
+                    }
+                }
+
+                stage('Copy in network') {
+                    steps {
+                        powershell 'Copy-Item -Path "$env:WORKSPACE\\src\\DotNetOutdated\\nupkg\\*.nupkg" -Destination "$env:QS_NUGET_SOURCE"'
+                    }
+                }
+            }
+        }
+
+        stage('Install on agents') {
+            // Run in parallel across different agents
+            // For now we uninstall and install everytime since we dont update
+            // the version and dotnet cli does not have a reinstall feature.
+            parallel {
+                stage('on built-in') {
+                    agent { label 'built-in' }
+                    stages {
+                        stage('Install Tool on Agent "Built-in"') {
+                            steps {
+                                powershell '''
+                                    dotnet tool uninstall --global ${env:TOOL_NAME}
+                                    dotnet tool install --global --add-source "$env:QS_NUGET_SOURCE" ${env:TOOL_NAME}
+                                '''
+                            }
+                        }
+                    }
+                }
+
+                stage('on srv-bm02') {
+                    agent { label 'srv-bm02' }
+                    stages {
+                        stage('Install Tool on Agent "srv-bm02"') {
+                            steps {
+                                powershell '''
+                                    dotnet tool uninstall --global ${env:TOOL_NAME}
+                                    dotnet tool install --global --add-source "$env:QS_NUGET_SOURCE" ${env:TOOL_NAME}
+                                '''
+                            }
+                        }
+                    }
+                }
+
+                stage('on srv-bm03') {
+                    agent { label 'srv-bm03' }
+                    stages {
+                        stage('Install Tool on "srv-bm03"') {
+                            steps {
+                                powershell '''
+                                    dotnet tool uninstall --global ${env:TOOL_NAME}
+                                    dotnet tool install --global --add-source "$env:QS_NUGET_SOURCE" ${env:TOOL_NAME}
+                                '''
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // stage('Cleanup') {
+        //     agent {label 'built-in'}
+        //     stages {
+        //         stage('Clean network') {
+        //             steps {
+        //                 powershell 'Remove-Item $env:QS_NUGET_SOURCE -Filter *$env:TOOL_NAME*'
+        //             }
+        //         }
+        //     }
+        // }
+    }
+}
