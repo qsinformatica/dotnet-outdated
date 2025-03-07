@@ -7,6 +7,10 @@ pipeline {
         QS_NUGET_SOURCE = "${SOFTWARE}\\Lib\\nuget"
     }
 
+    options {
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
+    }
+
     stages {
 
         stage('Main Build') {
