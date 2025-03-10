@@ -8,6 +8,7 @@ pipeline {
     }
 
     options {
+        skipDefaultCheckout true
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
     }
 
