@@ -53,7 +53,7 @@ dotnet tool update --global dotnet-outdated-tool
 Usage: dotnet outdated [options] <Path>
 
 Arguments:
-  Path                                                  The path to a .sln, .slnf, .csproj or .fsproj file, or to a directory containing a .NET Core solution/project. If none is specified, the current directory will be used.
+  Path                                                  The path to a .sln, .slnx, .slnf, .csproj or .fsproj file, or to a directory containing a .NET Core solution/project. If none is specified, the current directory will be used.
 
 Options:
   --version                                             Show version information.
@@ -99,11 +99,11 @@ Options:
 
 ## Specifying the path
 
-You can run **dotnet-outdated** without specifying the `Path` argument. In this case, it will look in the current directory for a solution (`.sln`) and if one is found it will analyze that solution. If no solution is found it will look for a project (`.csproj`, `.vbproj` or `.fsproj`) and if one is found it will analyze that project. If more than one solution or project is found in the current folder, **dotnet-outdated** will report an error.
+You can run **dotnet-outdated** without specifying the `Path` argument. In this case, it will look in the current directory for a solution (`.sln` or `.slnx`) and if one is found it will analyze that solution. If no solution is found it will look for a project (`.csproj`, `.vbproj` or `.fsproj`) and if one is found it will analyze that project. If more than one solution or project is found in the current folder, **dotnet-outdated** will report an error.
 
 You can also pass a directory in the `Path` argument, in which case the same logic described above will be used, but in the directory specified.
 
-Lastly, you can specify the path to a solution (`.sln`) or project (`.csproj`, `.vbproj`  or `.fsproj`) which **dotnet-outdated** must analyze.
+Lastly, you can specify the path to a solution (`.sln` or `.slnx`) or project (`.csproj`, `.vbproj` or `.fsproj`) which **dotnet-outdated** must analyze.
 
 ## Upgrading packages
 
@@ -186,6 +186,50 @@ This command will let the developers finish their job and update the packages on
 For failing CI builds, a proposed protocol is to have another CI build which will be scheduled weekly to inform developers of new packages, and they will react accordingly.
 
 Also, some companies/users do not feel comfortable jumping directly on the newest versions, as they might contain some bugs, and might want to wait for some time before updating to the newest package.
+
+## Model Context Protocol (MCP) Server
+
+**dotnet-outdated** includes a built-in [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server. This allows AI agents (like Claude Desktop, GitHub Copilot, etc.) to interact with your .NET projects to discover, analyze, and update outdated NuGet packages.
+
+### Usage
+
+To start the MCP server, run:
+
+```bash
+dotnet outdated mcp
+```
+
+### Configuration
+
+#### Claude Desktop
+
+Add the following to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "dotnet-outdated": {
+      "command": "dotnet-outdated",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+#### VS Code (with MCP Extension)
+
+Add the following to your `.vscode/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "dotnet-outdated": {
+      "command": "dotnet-outdated",
+      "args": ["mcp"]
+    }
+  }
+}
+```
 
 ## FAQ
 
