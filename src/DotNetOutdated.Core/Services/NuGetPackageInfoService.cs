@@ -114,11 +114,27 @@ namespace DotNetOutdated.Core.Services
                         // For development dependencies, we do not perform this check
                         if (!isDevelopmentDependency)
                         {
+                            // Before using FrameworkReducer, normalize platform version
                             var reducer = new FrameworkReducer();
+                            var normalizedFramework = targetFramework;
+
+                            if (targetFramework.HasPlatform && targetFramework.PlatformVersion == new Version(0, 0, 0, 0))
+                            {
+                                // Apply the SDK default: windows → windows7.0
+                                var defaultPlatformVersion = GetDefaultPlatformVersion(targetFramework.Platform);
+                                if (defaultPlatformVersion != null)
+                                {
+                                    normalizedFramework = new NuGetFramework(
+                                        targetFramework.Framework,
+                                        targetFramework.Version,
+                                        targetFramework.Platform,
+                                        defaultPlatformVersion);
+                                }
+                            }
 
                             compatibleMetadataList = compatibleMetadataList
                                 .Where(meta => meta.DependencySets?.Any() != true ||
-                                               reducer.GetNearest(targetFramework, meta.DependencySets.Select(ds => ds.TargetFramework)) != null);
+                                               reducer.GetNearest(normalizedFramework, meta.DependencySets.Select(ds => ds.TargetFramework)) != null).ToList();
                         }
 
                         foreach (var m in compatibleMetadataList)
@@ -164,5 +180,16 @@ namespace DotNetOutdated.Core.Services
         {
             _context?.Dispose();
         }
+
+        private static Version GetDefaultPlatformVersion(string platform) => platform.ToLowerInvariant() switch
+        {
+            "windows" => new Version(7, 0),
+            "android"  => new Version(21, 0),
+            "ios"      => new Version(14, 2),
+            "maccatalyst" => new Version(14, 2),
+            "macos"    => new Version(10, 15),
+            "tvos"     => new Version(14, 0),
+            _ => null
+        };
     }
 }
